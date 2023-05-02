@@ -35,15 +35,12 @@ class GradientDescent:
         
     def descent(self) -> np.ndarray:
         """Проводит градиентный спуск и возвращает точку оптимума"""
-        val: float = self.func(*self.args)
-        delta: float = np.inf
+        grad: float = np.inf
         it: int = 0
 
-        while abs(delta) > self.tol and (self.max_iter is None or it < self.max_iter):
-            self.args -= self.lr_scheduler.step(self.args) * self.func_grad(*self.args)
-            new_val = self.func(*self.args)
-            delta = new_val - val
-            val = new_val
+        while np.linalg.norm(grad) > self.tol and (self.max_iter is None or it < self.max_iter):
+            grad = self.func_grad(*self.args)
+            self.args -= self.lr_scheduler.step(self.args) * grad
             it += 1
 
         return self.args

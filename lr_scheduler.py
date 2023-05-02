@@ -8,7 +8,7 @@ class LrScheduler(ABC):
         super().__init__()
 
     @abstractmethod
-    def step(*args: np.ndarray) -> int:
+    def step(*args) -> int:
         pass
 
 
@@ -18,5 +18,5 @@ class ConstLrScheduler(LrScheduler):
         super().__init__()
         self.lr = lr
 
-    def step(self, *args: np.ndarray) -> float:
+    def step(self, *args) -> float:
         return self.lr
