@@ -39,7 +39,7 @@ class GradientDescent:
         it: int = 0
 
         while np.linalg.norm(grad) > self.tol and (self.max_iter is None or it < self.max_iter):
-            grad = self.func_grad(*self.args)
+            grad = self.func_grad(self.args)
             self.args -= self.lr_scheduler.step(self.args) * grad
             it += 1
 
