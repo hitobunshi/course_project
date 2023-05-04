@@ -12,6 +12,7 @@ from lr_scheduler import ConstLrScheduler
 class AvailableFunctions(str, Enum):
     MEAN_QUAD = 'mean_quad'
     SIN_COS = 'sin_cos'
+    FUZZY_SQUARES = 'fuzzy_squares'
 
 
 if __name__ == "__main__":
