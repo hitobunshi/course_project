@@ -1,11 +1,16 @@
-from functools import lru_cache
 import numpy as np
 import math
+
+from functools import lru_cache
+from interval import interval
 
 
 @lru_cache
 def sqrt_primes():
     return np.sqrt(np.array([2] + list(filter(lambda k: (k % np.arange(3, 1 + int(math.sqrt(k)), 2)).all(), range(1, 10000 + 1, 2)))))
+
+
+# ---------------------------------------------------
 
 
 def mean_quad(args: np.ndarray) -> float:
@@ -14,6 +19,9 @@ def mean_quad(args: np.ndarray) -> float:
 
 def mean_quad_grad(args: np.ndarray) -> np.ndarray:
     return args * 2 / len(args)
+
+
+# ---------------------------------------------------
 
 
 def sin_cos(args: np.ndarray) -> float:
@@ -28,6 +36,9 @@ def sin_cos_grad(args: np.ndarray) -> float:
     coefs_sin = coefs[:len(args)]
     coefs_cos = coefs[len(args):]
     return np.sum(coefs_sin * np.cos(args * coefs_sin) - coefs_cos * np.sin(args * coefs_cos))
+
+
+# ---------------------------------------------------
 
 
 FUZZY_SQUARES_CONST = 100
