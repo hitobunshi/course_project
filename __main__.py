@@ -6,7 +6,7 @@ from enum import Enum
 from typing import Callable
 
 from gradient_descent import GradientDescent
-from lr_scheduler import ConstLrScheduler
+from lr_scheduler import HansenScheduler
 
 
 class AvailableFunctions(str, Enum):
@@ -26,15 +26,16 @@ if __name__ == "__main__":
     parser.add_argument('--maximize', type=bool, default=False, help='Wether to maximize the function')
     args = parser.parse_args()
 
-    lr_scheduler = ConstLrScheduler(1e-4)
+    lr_scheduler = HansenScheduler()
 
     function: Callable[[np.ndarray], float] = getattr(func, args.function)
     grad: Callable[[np.ndarray], float] = getattr(func, args.function + '_grad')
+    bounder: Callable[[np.ndarray], float] = getattr(func, args.function + '_bounder')
     if args.maximize:
         old_grad: Callable[[np.ndarray], float] = getattr(func, args.function + '_grad')
         grad = lambda x: -1 * old_grad(x)
 
-    gradient_descent = GradientDescent(lr_scheduler, function, grad, num_args=args.num_args, tol=args.tol)
+    gradient_descent = GradientDescent(lr_scheduler, function, grad, bounder, num_args=args.num_args, tol=args.tol)
     min_point: np.ndarray = gradient_descent.descent()
 
     optimum_name = 'maximum' if args.maximize else 'minimum'

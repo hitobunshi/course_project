@@ -21,6 +21,15 @@ def mean_quad_grad(args: np.ndarray) -> np.ndarray:
     return args * 2 / len(args)
 
 
+def mean_quad_bounder(coords: np.ndarray, grad: np.ndarray):
+    antigrad = [interval[coord] for coord in -grad]  # антиградиент в интервалах
+
+    def bounder(X: interval) -> interval:
+        return sum([(interval[coord] + X * grad_coord) ** 2 for coord, grad_coord in zip(coords, antigrad)])
+    
+    return bounder
+
+
 # ---------------------------------------------------
 
 
