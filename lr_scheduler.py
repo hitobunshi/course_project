@@ -36,5 +36,6 @@ class HansenScheduler(LrScheduler):
         pass
 
     def step(self, **kwargs) -> float:
-        box, _ = hansen(kwargs['bounder'], interval[0, 1e9])
+        grad_bounder = kwargs['grad_bounder'] if 'grad_bounder' in kwargs else None
+        box, _ = hansen(kwargs['bounder'], interval[1e-3, 100], F_grad=kwargs['grad_bounder'])
         return (box[0].sup + box[0].inf) / 2

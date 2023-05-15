@@ -12,18 +12,20 @@ class GradientDescent:
         lr_scheduler: LrScheduler,
         func: Callable[..., float],
         func_grad: Callable[..., np.ndarray],
-        func_bounder: Callable[..., np.ndarray],
+        func_bounder: Callable[..., Callable],
         *,
         num_args: int | None = None,
         initial_args: np.ndarray | None = None,
         tol: float = 1e-6,
         max_iter: int | None = None,
+        grad_bounder: Callable[..., Callable] | None = None,
     ):
         self.lr_scheduler = lr_scheduler
         self.tol = tol
         self.func = func
         self.func_grad = func_grad
         self.func_bounder = func_bounder
+        self.grad_bounder = grad_bounder
         self.max_iter = max_iter
 
         if initial_args:
@@ -37,13 +39,16 @@ class GradientDescent:
         
     def descent(self) -> np.ndarray:
         """Проводит градиентный спуск и возвращает точку оптимума"""
-        grad: np.ndarray = np.inf
+        grad: np.ndarray = None
+        grad_norm: float = np.inf
         it: int = 0
 
-        while np.linalg.norm(grad) > self.tol and (self.max_iter is None or it < self.max_iter):
+        while grad_norm > self.tol and (self.max_iter is None or it < self.max_iter):
             grad = self.func_grad(self.args)
-            lr = self.lr_scheduler.step(bounder=self.func_bounder(self.args, grad))
+            grad_norm = np.linalg.norm(grad)
+            lr = self.lr_scheduler.step(bounder=self.func_bounder(self.args, grad), grad_bounder=self.grad_bounder(self.args, grad))
             self.args -= lr * grad
+            print(self.args, self.func(self.args))
             it += 1
 
         return self.args
