@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from enum import Enum
 from typing import Callable
 
+from bfgs import BFGSOptimizer
 from gradient_descent import GradientDescent
 from lr_scheduler import ConstLrScheduler, HansenScheduler
 from combined_multistart import CombinedMultistartOptimizer
@@ -23,6 +24,7 @@ class Method(str, Enum):
     GRADIENT_DESCENT = 'gradient_descent'
     COMBINED = 'combined'
     COMBINED_MULTISTART = 'combined_multistart'
+    BFGS = 'bfgs'
 
 
 if __name__ == "__main__":
@@ -54,6 +56,8 @@ if __name__ == "__main__":
             optimizer = GradientDescent(HansenScheduler(), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
         case Method.COMBINED_MULTISTART:
             optimizer = CombinedMultistartOptimizer(function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
+        case Method.BFGS:
+            optimizer = BFGSOptimizer(function, grad, args.num_args, max_iter=args.max_iter)
 
     sum_error: float = 0
     sum_time: float = 0
