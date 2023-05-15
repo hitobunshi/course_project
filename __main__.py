@@ -7,6 +7,8 @@ from enum import Enum
 from typing import Callable
 
 from gradient_descent import GradientDescent
+from lr_scheduler import ConstLrScheduler, HansenScheduler
+from optimizer import Optimizer
 
 
 class AvailableFunctions(str, Enum):
@@ -17,15 +19,9 @@ class AvailableFunctions(str, Enum):
     ROSENBROCK = 'rosenbrock'
 
 
-class Scheduler(str, Enum):
-    CONST_LR = 'ConstLrScheduler'
-    HANSEN = 'HansenScheduler'
-
-
-schedulers = {
-    Scheduler.CONST_LR: lr_scheduler.ConstLrScheduler(1e-4),
-    Scheduler.HANSEN: lr_scheduler.HansenScheduler(),
-}
+class Method(str, Enum):
+    GRADIENT_DESCENT = 'gradient_descent'
+    COMBINED = 'combined'
 
 
 if __name__ == "__main__":
@@ -37,11 +33,10 @@ if __name__ == "__main__":
     parser.add_argument('--num-args', type=int, default=2, help='Number of arguments to pass to the function')
     parser.add_argument('--tol', type=float, default=1e-8, help='Tolerance for the optimization')
     parser.add_argument('--maximize', type=bool, default=False, help='Wether to maximize the function')
-    parser.add_argument('--scheduler', type=Scheduler, default=Scheduler.HANSEN, help='LR scheduler to use')
-    parser.add_argument('--max-iter', type=int, default=1e4, help='Maximum number of iterations in gradient descent')
+    parser.add_argument('--method', type=Method, default=Method.GRADIENT_DESCENT, help='LR scheduler to use')
+    parser.add_argument('--max-iter', type=int, default=None, help='Maximum number of iterations in gradient descent')
+    parser.add_argument('--repetitions', type=int, default=100, help='Number of experiment repetitions')
     args = parser.parse_args()
-
-    scheduler: lr_scheduler.LrScheduler = schedulers[args.scheduler]
 
     function: Callable[[np.ndarray], float] = getattr(func, args.function)
     grad: Callable[[np.ndarray], float] = getattr(func, args.function + '_grad')
@@ -51,10 +46,21 @@ if __name__ == "__main__":
         old_grad: Callable[[np.ndarray], float] = getattr(func, args.function + '_grad')
         grad = lambda x: -1 * old_grad(x)
 
-    gradient_descent = GradientDescent(scheduler, function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
-    gradient_descent.optimize()
-    min_point: np.ndarray = gradient_descent.args
+    match args.method:
+        case Method.GRADIENT_DESCENT:
+            optimizer = GradientDescent(ConstLrScheduler(1e-4), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter)
+        case Method.COMBINED:
+            optimizer = GradientDescent(HansenScheduler(), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
 
-    optimum_name = 'maximum' if args.maximize else 'minimum'
-    print(f'Found {optimum_name}: {min_point}')
-    print(f'Function value in the {optimum_name}: {function(min_point)}')
+    sum_error: float = 0
+    sum_time: float = 0
+    sum_iter_count: float = 0
+    for _ in range(args.repetitions):
+        optimizer.optimize()
+        sum_error += optimizer.error
+        sum_time += optimizer.time_sec
+        sum_iter_count += optimizer.iter_count
+
+    print(f'Mean error: {sum_error / args.repetitions}')
+    print(f'Mean time: {sum_time / args.repetitions} seconds')
+    print(f'Mean iter count: {sum_iter_count / args.repetitions}')

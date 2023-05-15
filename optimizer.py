@@ -1,11 +1,24 @@
 import abc
 import numpy as np
 
+from functools import wraps
+from time import perf_counter
 from typing import Callable
 
 
+def experiment_wrapper(f: Callable):
+    @wraps(f)
+    def wrapper(self, *args, **kwargs):
+        self._iter_count = 0
+        self._sum_error = 0
+        self._time_start = perf_counter()
+        f(self, *args, **kwargs)
+        self._time_end = perf_counter()
+    return wrapper
+
+
 class Optimizer(abc.ABC):
-    def __init__(self, func: Callable, func_grad: Callable, initial_args: np.ndarray | None = None, num_args: int | None = None, max_iter: int | None = None):
+    def __init__(self, func: Callable, func_grad: Callable, num_args: int, max_iter: int | None = None):
         super().__init__()
         self.func = func
         self.func_grad = func_grad
@@ -17,27 +30,21 @@ class Optimizer(abc.ABC):
 
         self.max_iter = max_iter
 
-        if initial_args:
-            self.args = initial_args
-            self.num_args = len(initial_args)
-        elif num_args:
-            self.num_args = num_args
-            self.args = np.random.rand(num_args)
-        else:
-            raise ValueError("Either initial_args or num_args should be provided")
+        self.num_args = num_args
+        self.args = np.random.rand(num_args)
 
     @abc.abstractmethod
     def optimize(self) -> None:
         pass
 
     @property
-    def mean_error(self) -> float:
-        return self._sum_error / self._iter_count
-    
+    def error(self) -> float:
+        return self._sum_error
+
     @property
     def iter_count(self) -> int:
         return self._iter_count
-    
+
     @property
     def time_sec(self) -> float:
         return self._time_end - self._time_start
