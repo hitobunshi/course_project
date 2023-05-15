@@ -52,7 +52,8 @@ if __name__ == "__main__":
         grad = lambda x: -1 * old_grad(x)
 
     gradient_descent = GradientDescent(scheduler, function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
-    min_point: np.ndarray = gradient_descent.descent()
+    gradient_descent.optimize()
+    min_point: np.ndarray = gradient_descent.args
 
     optimum_name = 'maximum' if args.maximize else 'minimum'
     print(f'Found {optimum_name}: {min_point}')

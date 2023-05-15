@@ -1,11 +1,13 @@
 import numpy as np
 
+from time import perf_counter
 from typing import Callable
 
 from lr_scheduler import LrScheduler
+from optimizer import Optimizer
 
 
-class GradientDescent:
+class GradientDescent(Optimizer):
     """Базовый градиентный спуск"""
     def __init__(
         self,
@@ -20,25 +22,16 @@ class GradientDescent:
         max_iter: int | None = None,
         grad_bounder: Callable[..., Callable] | None = None,
     ):
+        super().__init__(func, func_grad, initial_args, num_args, max_iter)
         self.lr_scheduler = lr_scheduler
         self.tol = tol
-        self.func = func
-        self.func_grad = func_grad
         self.func_bounder = func_bounder
         self.grad_bounder = grad_bounder
-        self.max_iter = max_iter
 
-        if initial_args:
-            self.args = initial_args
-            self.num_args = len(initial_args)
-        elif num_args:
-            self.num_args = num_args
-            self.args = np.random.rand(num_args)
-        else:
-            raise ValueError("Either initial_args or num_args should be provided")
-        
-    def descent(self) -> np.ndarray:
+    def optimize(self) -> None:
         """Проводит градиентный спуск и возвращает точку оптимума"""
+        self._time_start = perf_counter()
+
         grad: np.ndarray = None
         grad_norm: float = np.inf
         it: int = 0
@@ -48,7 +41,8 @@ class GradientDescent:
             grad_norm = np.linalg.norm(grad)
             lr = self.lr_scheduler.step(bounder=self.func_bounder(self.args, grad), grad_bounder=self.grad_bounder(self.args, grad))
             self.args -= lr * grad
-            print(self.args, self.func(self.args))
             it += 1
 
-        return self.args
+        self._sum_error += abs(self.func(self.args))
+
+        self._time_end = perf_counter()
