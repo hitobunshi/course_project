@@ -8,9 +8,10 @@ from typing import Callable
 
 def experiment_wrapper(f: Callable):
     @wraps(f)
-    def wrapper(self, *args, **kwargs):
+    def wrapper(self: Optimizer, *args, **kwargs):
+        self.args = np.random.rand(self.num_args)
         self._iter_count = 0
-        self._sum_error = 0
+        self._error = 0
         self._time_start = perf_counter()
         f(self, *args, **kwargs)
         self._time_end = perf_counter()
@@ -24,7 +25,7 @@ class Optimizer(abc.ABC):
         self.func_grad = func_grad
 
         self._iter_count: int = 0
-        self._sum_error: float = 0
+        self._error: float = 0
         self._time_start: float = 0
         self._time_end: float = 0
 
@@ -39,7 +40,7 @@ class Optimizer(abc.ABC):
 
     @property
     def error(self) -> float:
-        return self._sum_error
+        return self._error
 
     @property
     def iter_count(self) -> int:

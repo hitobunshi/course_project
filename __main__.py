@@ -8,7 +8,7 @@ from typing import Callable
 
 from gradient_descent import GradientDescent
 from lr_scheduler import ConstLrScheduler, HansenScheduler
-from optimizer import Optimizer
+from combined_multistart import CombinedMultistartOptimizer
 
 
 class AvailableFunctions(str, Enum):
@@ -22,6 +22,7 @@ class AvailableFunctions(str, Enum):
 class Method(str, Enum):
     GRADIENT_DESCENT = 'gradient_descent'
     COMBINED = 'combined'
+    COMBINED_MULTISTART = 'combined_multistart'
 
 
 if __name__ == "__main__":
@@ -48,9 +49,11 @@ if __name__ == "__main__":
 
     match args.method:
         case Method.GRADIENT_DESCENT:
-            optimizer = GradientDescent(ConstLrScheduler(1e-4), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter)
+            optimizer = GradientDescent(ConstLrScheduler(1e-2), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter)
         case Method.COMBINED:
             optimizer = GradientDescent(HansenScheduler(), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
+        case Method.COMBINED_MULTISTART:
+            optimizer = CombinedMultistartOptimizer(function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
 
     sum_error: float = 0
     sum_time: float = 0
@@ -62,5 +65,5 @@ if __name__ == "__main__":
         sum_iter_count += optimizer.iter_count
 
     print(f'Mean error: {sum_error / args.repetitions}')
-    print(f'Mean time: {sum_time / args.repetitions} seconds')
+    print(f'Mean time: {sum_time / args.repetitions} s')
     print(f'Mean iter count: {sum_iter_count / args.repetitions}')

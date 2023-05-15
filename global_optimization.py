@@ -47,4 +47,4 @@ def hansen(F: Callable[[interval], interval], X: interval, F_grad: Callable[[int
         c = Y.midpoint
         f_midpoint = min(f_midpoint, F(c)[0].sup)
 
-    return res
+    return res, L

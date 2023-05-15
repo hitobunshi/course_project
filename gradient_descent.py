@@ -28,6 +28,9 @@ class GradientDescent(Optimizer):
 
     @experiment_wrapper
     def optimize(self) -> None:
+        self.optimize_impl()
+
+    def optimize_impl(self) -> None:
         """Проводит градиентный спуск и возвращает точку оптимума"""
         grad: np.ndarray = None
         grad_norm: float = np.inf
@@ -44,4 +47,4 @@ class GradientDescent(Optimizer):
             self.args -= lr * grad
             self._iter_count += 1
 
-        self._sum_error = self.func(self.args)
+        self._error = abs(self.func(self.args))
