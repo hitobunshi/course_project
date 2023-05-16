@@ -6,6 +6,7 @@ from argparse import ArgumentParser
 from enum import Enum
 from typing import Callable
 
+from adam import AdamOptimizer
 from bfgs import BFGSOptimizer
 from gradient_descent import GradientDescent
 from lr_scheduler import ConstLrScheduler, HansenScheduler
@@ -25,6 +26,7 @@ class Method(str, Enum):
     COMBINED = 'combined'
     COMBINED_MULTISTART = 'combined_multistart'
     BFGS = 'bfgs'
+    ADAM = 'adam'
 
 
 if __name__ == "__main__":
@@ -51,13 +53,15 @@ if __name__ == "__main__":
 
     match args.method:
         case Method.GRADIENT_DESCENT:
-            optimizer = GradientDescent(ConstLrScheduler(1e-2), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter)
+            optimizer = GradientDescent(ConstLrScheduler(1e-3), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter)
         case Method.COMBINED:
             optimizer = GradientDescent(HansenScheduler(), function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
         case Method.COMBINED_MULTISTART:
             optimizer = CombinedMultistartOptimizer(function, grad, bounder, num_args=args.num_args, tol=args.tol, max_iter=args.max_iter, grad_bounder=grad_bounder)
         case Method.BFGS:
-            optimizer = BFGSOptimizer(function, grad, args.num_args, max_iter=args.max_iter)
+            optimizer = BFGSOptimizer(function, grad, args.num_args, max_iter=args.max_iter, tol=args.tol)
+        case Method.ADAM:
+            optimizer = AdamOptimizer(function, grad, args.num_args, max_iter=args.max_iter, tol=args.tol)
 
     sum_error: float = 0
     sum_time: float = 0

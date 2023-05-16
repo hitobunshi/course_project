@@ -3,7 +3,7 @@ from interval import interval
 from typing import Callable
 
 
-def hansen(F: Callable[[interval], interval], X: interval, F_grad: Callable[[interval], interval] | None = None, tol=1e-4) -> tuple[interval, float]:
+def hansen(F: Callable[[interval], interval], X: interval, F_grad: Callable[[interval], interval] | None = None, tol=1e-3) -> tuple[interval, float]:
     Y: interval = X
     y: float = F(Y)[0].inf
     c: interval = Y.midpoint
